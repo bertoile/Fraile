@@ -1,16 +1,16 @@
-import streamlit as str
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Configuración de la página web interactiva
-str.set_page_config(page_title="Sistema de Inteligencia Social - CyL", layout="wide", page_icon="📊")
+# Configuración de la página web interactiva utilizando el alias correcto 'st'
+st.set_page_config(page_title="Sistema de Inteligencia Social - CyL", layout="wide", page_icon="📊")
 
-str.title("📊 Sistema de Inteligencia Social e Intervención")
-str.markdown("### Herramienta interactiva para el análisis de casos en riesgo de exclusión social")
-str.write("Sube tu archivo CSV para activar el panel de control interactivo, realizar consultas automáticas y acceder a recursos oficiales.")
+st.title("📊 Sistema de Inteligencia Social e Intervención")
+st.markdown("### Herramienta interactiva para el análisis de casos en riesgo de exclusión social")
+st.write("Sube tu archivo CSV para activar el panel de control interactivo, realizar consultas automáticas y acceder a recursos oficiales.")
 
 # 1. CARGA DEL ARCHIVO CSV
-archivo_subido = str.file_uploader("📂 Arrastra o selecciona tu archivo CSV de casos anónimos", type=["csv"])
+archivo_subido = st.file_uploader("📂 Arrastra o selecciona tu archivo CSV de casos anónimos", type=["csv"])
 
 if archivo_subido is not None:
     try:
@@ -31,48 +31,48 @@ if archivo_subido is not None:
         df = df.rename(columns=columnas_mapeo)
         
         # BARRA LATERAL: Filtros Interactivos
-        str.sidebar.header("🎯 Filtros del Panel")
+        st.sidebar.header("🎯 Filtros del Panel")
         
         if 'Provincia' in df.columns:
             provincias = ["Todas"] + list(df['Provincia'].dropna().unique())
-            provincia_sel = str.sidebar.selectbox("Filtrar por Provincia de CyL:", provincias)
+            provincia_sel = st.sidebar.selectbox("Filtrar por Provincia de CyL:", provincias)
             if provincia_sel != "Todas":
                 df_filtrado = df[df['Provincia'] == provincia_sel]
             else:
                 df_filtrado = df
         else:
-            str.sidebar.warning("⚠️ No se encontró la columna 'Provincia' en el CSV. Mostrando todos los datos.")
+            st.sidebar.warning("⚠️ No se encontró la columna 'Provincia' en el CSV. Mostrando todos los datos.")
             df_filtrado = df
 
         # INDICADORES CLAVE (Métricas automáticas)
-        str.markdown("---")
-        col1, col2, col3, col4 = str.columns(4)
+        st.markdown("---")
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
-            str.metric("Total Casos Analizados", len(df_filtrado))
+            st.metric("Total Casos Analizados", len(df_filtrado))
         with col2:
             if 'Ingresos_Mensuales_EUR' in df_filtrado.columns:
                 ingreso_medio = round(df_filtrado['Ingresos_Mensuales_EUR'].mean(), 2)
-                str.metric("Ingreso Mensual Promedio", f"{ingreso_medio} €")
+                st.metric("Ingreso Mensual Promedio", f"{ingreso_medio} €")
             else:
-                str.metric("Ingreso Mensual Promedio", "No encontrada col. Ingresos")
+                st.metric("Ingreso Mensual Promedio", "No encontrada col. Ingresos")
         with col3:
             if 'Requiere_Intervencion_Urgente' in df_filtrado.columns:
                 casos_urgentes = len(df_filtrado[df_filtrado['Requiere_Intervencion_Urgente'] == 'Sí'])
-                str.metric("⚠️ Intervenciones Urgentes", casos_urgentes)
+                st.metric("⚠️ Intervenciones Urgentes", casos_urgentes)
             else:
-                str.metric("⚠️ Intervenciones Urgentes", "N/D")
+                st.metric("⚠️ Intervenciones Urgentes", "N/D")
         with col4:
             if 'Edad' in df_filtrado.columns:
                 mayores_60 = len(df_filtrado[df_filtrado['Edad'] >= 60])
-                str.metric("👴 Personas Mayores (≥60 años)", mayores_60)
+                st.metric("👴 Personas Mayores (≥60 años)", mayores_60)
             else:
-                str.metric("👴 Personas Mayores (≥60 años)", "N/D")
+                st.metric("👴 Personas Mayores (≥60 años)", "N/D")
 
         # 2. LOS 6 BOTONES DE PREGUNTAS PRECONFIGURADAS (Pestañas interactivas)
-        str.markdown("## 🔍 Consultas Rápidas Preconfiguradas")
-        str.write("Haz clic en las pestañas para responder instantáneamente a tus preguntas clave:")
+        st.markdown("## 🔍 Consultas Rápidas Preconfiguradas")
+        st.write("Haz clic en las pestañas para responder instantáneamente a tus preguntas clave:")
         
-        tab1, tab2, tab3, tab4, tab5, tab6 = str.tabs([
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
             "📋 Resumen Perfil", 
             "🧠 Patrones", 
             "💼 Capacitación Laboral", 
@@ -82,100 +82,100 @@ if archivo_subido is not None:
         ])
         
         with tab1:
-            str.subheader("Resumen General del Perfil de los Casos")
-            col_t1_1, col_t1_2 = str.columns(2)
+            st.subheader("Resumen General del Perfil de los Casos")
+            col_t1_1, col_t1_2 = st.columns(2)
             with col_t1_1:
                 if 'Genero' in df_filtrado.columns:
                     fig_genero = px.pie(df_filtrado, names='Genero', title='Distribución por Género', color_discrete_sequence=px.colors.qualitative.Pastel)
-                    str.plotly_chart(fig_genero, use_container_width=True)
+                    st.plotly_chart(fig_genero, use_container_width=True)
                 else:
-                    str.warning("No se encontró la columna 'Genero' para el gráfico.")
+                    st.warning("No se encontró la columna 'Genero' para el gráfico.")
             with col_t1_2:
                 if 'Edad' in df_filtrado.columns:
                     fig_edad = px.histogram(df_filtrado, x='Edad', nbins=15, title='Distribución de Edades', color_discrete_sequence=['#004080'])
-                    str.plotly_chart(fig_edad, use_container_width=True)
+                    st.plotly_chart(fig_edad, use_container_width=True)
                 else:
-                    str.warning("No se encontró la columna 'Edad' para el gráfico.")
+                    st.warning("No se encontró la columna 'Edad' para el gráfico.")
                 
         with tab2:
-            str.subheader("Patrones de Vulnerabilidad Detectados")
+            st.subheader("Patrones de Vulnerabilidad Detectados")
             if 'Situacion_Principal' in df_filtrado.columns and 'Ingresos_Mensuales_EUR' in df_filtrado.columns:
-                str.write("Relación entre Situación Principal e Ingresos Mensuales:")
+                st.write("Relación entre Situación Principal e Ingresos Mensuales:")
                 fig_scatter = px.box(df_filtrado, x='Situacion_Principal', y='Ingresos_Mensuales_EUR', color='Situacion_Principal',
                                      title="Dispersión de Ingresos según Problemática", color_discrete_sequence=px.colors.qualitative.Safe)
-                str.plotly_chart(fig_scatter, use_container_width=True)
+                st.plotly_chart(fig_scatter, use_container_width=True)
             else:
-                str.warning("Faltan las columnas 'Situacion_Principal' o 'Ingresos_Mensuales_EUR' para este análisis.")
+                st.warning("Faltan las columnas 'Situacion_Principal' o 'Ingresos_Mensuales_EUR' para este análisis.")
             
         with tab3:
-            str.subheader("Personas en Edad Laboral para Talleres de Capacitación")
+            st.subheader("Personas en Edad Laboral para Talleres de Capacitación")
             if 'Edad' in df_filtrado.columns and 'Situacion_Principal' in df_filtrado.columns:
                 perfiles_laborales = df_filtrado[(df_filtrado['Edad'] >= 18) & (df_filtrado['Edad'] <= 55) & (df_filtrado['Situacion_Principal'] == 'Desempleo de larga duración')]
-                str.write(f"Se han detectado **{len(perfiles_laborales)} personas** aptas para incorporarse a itinerarios de empleo y capacitación digital/textil.")
+                st.write(f"Se han detectado **{len(perfiles_laborales)} personas** aptas para incorporarse a itinerarios de empleo y capacitación digital/textil.")
                 if len(perfiles_laborales) > 0:
-                    str.dataframe(perfiles_laborales)
+                    st.dataframe(perfiles_laborales)
             else:
-                str.warning("Faltan las columnas 'Edad' o 'Situacion_Principal' para calcular perfiles laborales.")
+                st.warning("Faltan las columnas 'Edad' o 'Situacion_Principal' para calcular perfiles laborales.")
             
         with tab4:
-            str.subheader("Aislamiento Social y Propuestas de Intervención")
+            st.subheader("Aislamiento Social y Propuestas de Intervención")
             if 'Nivel_Autonomia_Aseo' in df_filtrado.columns:
-                str.write("Casos detectados con Dependencia de Aseo o Situaciones de Aislamiento:")
+                st.write("Casos detectados con Dependencia de Aseo o Situaciones de Aislamiento:")
                 dependencia_aseo = df_filtrado[df_filtrado['Nivel_Autonomia_Aseo'].isin(['Dependencia Total', 'Dependencia Moderada'])]
-                str.dataframe(dependencia_aseo)
+                st.dataframe(dependencia_aseo)
             else:
-                str.warning("No se encontró la columna 'Nivel_Autonomia_Aseo'.")
+                st.warning("No se encontró la columna 'Nivel_Autonomia_Aseo'.")
             
-            str.markdown("### 💡 Propuestas de Intervención Grupal Sugeridas:")
-            str.info("1. **Taller de Apoyo Domiciliario Múltiple:** Agrupar casos de Dependencia Moderada en zonas cercanas para optimizar auxiliares del SAD.\n\n"
+            st.markdown("### 💡 Propuestas de Intervención Grupal Sugeridas:")
+            st.info("1. **Taller de Apoyo Domiciliario Múltiple:** Agrupar casos de Dependencia Moderada en zonas cercanas para optimizar auxiliares del SAD.\n\n"
                      "2. **Cafés Vecinales de Envejecimiento Activo:** Para los perfiles identificados como 'Persona mayor viviendo sola'.")
 
         with tab5:
-            str.subheader("Análisis de la Situación del Entorno y Necesidades")
+            st.subheader("Análisis de la Situación del Entorno y Necesidades")
             if 'Situacion_Principal' in df_filtrado.columns and 'Nivel_Autonomia_Aseo' in df_filtrado.columns:
                 fig_sit = px.bar(df_filtrado, x='Situacion_Principal', color='Nivel_Autonomia_Aseo', 
                                  title="Problemática Principal Cruzada con Nivel de Autonomía", barmode='group')
-                str.plotly_chart(fig_sit, use_container_width=True)
+                st.plotly_chart(fig_sit, use_container_width=True)
             else:
-                str.warning("Faltan columnas de Situación o Autonomía para este gráfico.")
+                st.warning("Faltan columnas de Situación o Autonomía para este gráfico.")
             
         with tab6:
-            str.subheader("Tiempo en Seguimiento y Alertas Críticas")
+            st.subheader("Tiempo en Seguimiento y Alertas Críticas")
             if 'Requiere_Intervencion_Urgente' in df_filtrado.columns:
                 urgentes = df_filtrado[df_filtrado['Requiere_Intervencion_Urgente'] == 'Sí']
-                str.error(f"¡Atención! Hay {len(urgentes)} casos que requieren priorización inmediata en la lista de asuntos sociales:")
-                str.dataframe(urgentes)
+                st.error(f"¡Atención! Hay {len(urgentes)} casos que requieren priorización inmediata en la lista de asuntos sociales:")
+                st.dataframe(urgentes)
             else:
-                str.warning("No se encontró la columna 'Requiere_Intervencion_Urgente'. Mapeando toda la tabla de datos:")
-                str.dataframe(df_filtrado)
+                st.warning("No se encontró la columna 'Requiere_Intervencion_Urgente'. Mapeando toda la tabla de datos:")
+                st.dataframe(df_filtrado)
 
         # 3. BUSCADOR INTERACTIVO DE AYUDAS Y RECURSOS
-        str.markdown("---")
-        str.markdown("## 🌐 Buscador Integrado de Ayudas (JCYL y Nacional)")
-        str.write("Selecciona una problemática para obtener las palabras clave e instrucciones de tramitación oficial:")
+        st.markdown("---")
+        st.markdown("## 🌐 Buscador Integrado de Ayudas (JCYL y Nacional)")
+        st.write("Selecciona una problemática para obtener las palabras clave e instrucciones de tramitación oficial:")
         
-        opcion_ayuda = str.selectbox("¿Qué recurso necesitas gestionar?", [
+        opcion_ayuda = st.selectbox("¿Qué recurso necesitas gestionar?", [
             "Personas Mayores de 60 años con falta de autonomía en aseo (Dependencia CyL)",
             "Inserción Laboral y Capacitación",
             "Ingreso Mínimo Vital y Renta de Ciudadanía"
         ])
         
         if "aseo" in opcion_ayuda.lower():
-            str.warning("🚨 **Recurso Identificado:** Servicio de Ayuda a Domicilio (SAD) y Prestación Económica de la Ley de Dependencia.")
-            str.write("**Pasos para tramitar:** El usuario debe acudir al CEAS (Centro de Acción Social) de su municipio en Castilla y León para solicitar la valoración del Grado de Dependencia.")
-            str.markdown("[🔗 Buscar en Sede Electrónica JCYL (Dependencia)](https://www.tramitas.jcyl.es/)")
-            str.markdown("[🔗 Enlace Oficial del IMSERSO (Nacional)](https://imserso.es)")
+            st.warning("🚨 **Recurso Identificado:** Servicio de Ayuda a Domicilio (SAD) y Prestación Económica de la Ley de Dependencia.")
+            st.write("**Pasos para tramitar:** El usuario debe acudir al CEAS (Centro de Acción Social) de su municipio en Castilla y León para solicitar la valoración del Grado de Dependencia.")
+            st.markdown("[🔗 Buscar en Sede Electrónica JCYL (Dependencia)](https://www.tramitas.jcyl.es/)")
+            st.markdown("[🔗 Enlace Oficial del IMSERSO (Nacional)](https://imserso.es)")
 
         elif "laboral" in opcion_ayuda.lower():
-            str.info("💼 **Recurso Identificado:** Programas de fomento del empleo del ECYL (Servicio Público de Empleo de Castilla y León).")
-            str.markdown("[🔗 Consultar Cursos de Capacitación ECYL](https://empleo.jcyl.es/)")
+            st.info("💼 **Recurso Identificado:** Programas de fomento del empleo del ECYL (Servicio Público de Empleo de Castilla y León).")
+            st.markdown("[🔗 Consultar Cursos de Capacitación ECYL](https://empleo.jcyl.es/)")
 
         else:
-            str.success("💰 **Recurso Identificado:** Renta de Ciudadanía de CyL / Ingreso Mínimo Vital (Seguridad Social).")
-            str.markdown("[🔗 Simulador del Ingreso Mínimo Vital (Nacional)](https://prestaciones.seg-social.es/)")
+            st.success("💰 **Recurso Identificado:** Renta de Ciudadanía de CyL / Ingreso Mínimo Vital (Seguridad Social).")
+            st.markdown("[🔗 Simulador del Ingreso Mínimo Vital (Nacional)](https://prestaciones.seg-social.es/)")
 
     except Exception as e:
-        str.error(f"Ocurrió un error al procesar el archivo CSV: {e}")
-        str.info("Por favor, asegúrate de que el archivo no esté corrupto y tenga un formato estándar.")
+        st.error(f"Ocurrió un error al procesar el archivo CSV: {e}")
+        st.info("Por favor, asegúrate de que el archivo no esté corrupto y tenga un formato estándar.")
 else:
-    str.info("💡 Por favor, sube un archivo CSV en el panel central para activar el programa interactivo.")
+    st.info("💡 Por favor, sube un archivo CSV en el panel central para activar el programa interactivo.")
